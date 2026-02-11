@@ -1,21 +1,31 @@
 # clawdigest-mcp
 
-MCP server for ClawDigest (`MCP 2024-11-05` Streamable HTTP with SSE compatibility).
+MCP server for [ClawDigest](https://clawdigest.live) AI news aggregator.
 
-## Run
+## Install (Claude Code)
 
 ```bash
-npx clawdigest-mcp --port 8788
-# or
-CLAWDIGEST_URL=https://clawdigest.live PORT=8788 npx clawdigest-mcp
+claude mcp add clawdigest -- npx clawdigest-mcp
 ```
 
-MCP endpoint: `http://localhost:8788/mcp`
+Or in settings JSON:
+
+```json
+{"mcpServers":{"clawdigest":{"command":"npx","args":["clawdigest-mcp"]}}}
+```
+
+## HTTP mode (hosted)
+
+```bash
+npx clawdigest-mcp --http --port 8788
+```
 
 ## Tools
 
-- `clawdigest_latest`
-- `clawdigest_search`
-- `clawdigest_trending`
-- `clawdigest_sources`
-- `clawdigest_article`
+| Tool | Description |
+|------|-------------|
+| clawdigest_latest | Latest/top items with filters |
+| clawdigest_search | Search by query |
+| clawdigest_sources | Source catalog |
+| clawdigest_trending | Trending topics |
+| clawdigest_article | Extract article text by URL |
