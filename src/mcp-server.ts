@@ -3,6 +3,7 @@ import express from 'express';
 import { randomUUID } from 'node:crypto';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
 import { JSDOM } from 'jsdom';
 import { Readability } from '@mozilla/readability';
@@ -279,31 +280,47 @@ function makeServer() {
   return server;
 }
 
-const app = express();
-app.use(express.json({ limit: '1mb' }));
+const args = process.argv.slice(2);
+const httpMode = args.includes('--http');
 
-let transport: StreamableHTTPServerTransport | null = null;
-let server: McpServer | null = null;
+async function main() {
+  if (httpMode) {
+    const app = express();
+    app.use(express.json({ limit: '1mb' }));
 
-app.all('/mcp', async (req, res) => {
-  try {
-    if (!transport) {
-      server = makeServer();
-      transport = new StreamableHTTPServerTransport({
-        sessionIdGenerator: () => randomUUID(),
-      });
-      await server.connect(transport);
-    }
-    await transport.handleRequest(req, res, req.body);
-  } catch (err: any) {
-    res.status(500).json({ ok: false, error: err?.message || 'mcp_error' });
+    let transport: StreamableHTTPServerTransport | null = null;
+    let server: McpServer | null = null;
+
+    app.all('/mcp', async (req, res) => {
+      try {
+        if (!transport) {
+          server = makeServer();
+          transport = new StreamableHTTPServerTransport({
+            sessionIdGenerator: () => randomUUID(),
+          });
+          await server.connect(transport);
+        }
+        await transport.handleRequest(req, res, req.body);
+      } catch (err: any) {
+        res.status(500).json({ ok: false, error: err?.message || 'mcp_error' });
+      }
+    });
+
+    app.get('/', (_req, res) => {
+      res.type('text/plain').send('clawdigest-mcp up. POST /mcp for MCP.');
+    });
+
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`clawdigest-mcp HTTP on :${PORT}`);
+    });
+  } else {
+    const server = makeServer();
+    const transport = new StdioServerTransport();
+    await server.connect(transport);
   }
-});
+}
 
-app.get('/', (_req, res) => {
-  res.type('text/plain').send('clawdigest-mcp up. Use /mcp for Streamable HTTP (SSE-compatible).');
-});
-
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`clawdigest-mcp listening on :${PORT} (MCP 2024-11-05 Streamable HTTP/SSE)`);
+main().catch((err) => {
+  console.error('[clawdigest-mcp] fatal', err);
+  process.exit(1);
 });
