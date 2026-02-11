@@ -18,6 +18,10 @@ const STOPWORDS = new Set([
   'the', 'a', 'an', 'and', 'or', 'for', 'with', 'into', 'from', 'to', 'of', 'in', 'on', 'at', 'by',
   'is', 'are', 'was', 'were', 'be', 'been', 'it', 'this', 'that', 'as', 'new', 'after', 'over', 'under',
   'via', 'how', 'why', 'what', 'when', 'where', 'can', 'will', 'its', 'their', 'your', 'our', 'about',
+  'says', 'said', 'could', 'would', 'also', 'just', 'get', 'got', 'has', 'have', 'had', 'may', 'might',
+  'much', 'more', 'most', 'some', 'than', 'them', 'then', 'these', 'they', 'very', 'want', 'year', 'years',
+  'first', 'last', 'still', 'back', 'down', 'make', 'made', 'takes', 'turns', 'launches', 'gets', 'looks',
+  'comes', 'goes', 'shows', 'finds', 'keeps', 'lets', 'puts', 'runs', 'sets', 'tells', 'uses', 'wants', 'works',
 ]);
 
 type DigestItem = {
@@ -55,12 +59,34 @@ async function fetchText(url: string) {
   return res.text();
 }
 
-function keywordize(title: string): string[] {
-  return String(title || '')
+function decodeEntities(text: string): string {
+  return String(text || '')
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCharCode(parseInt(h, 16)))
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'");
+}
+
+function extractTerms(title: string): string[] {
+  const words = decodeEntities(title)
     .toLowerCase()
     .replace(/[^a-z0-9\s]/g, ' ')
     .split(/\s+/)
-    .filter((t) => t.length >= 3 && !STOPWORDS.has(t));
+    .filter((w) => w.length >= 3 && !STOPWORDS.has(w) && !/^\d+$/.test(w));
+
+  const result: string[] = [];
+  for (let i = 0; i < words.length - 1; i++) {
+    result.push(`${words[i]} ${words[i + 1]}`);
+  }
+
+  for (const w of words) {
+    if (w.length >= 5) result.push(w);
+  }
+
+  return result;
 }
 
 function deriveTrendingTopics(items: DigestItem[], topN = 10) {
@@ -68,7 +94,7 @@ function deriveTrendingTopics(items: DigestItem[], topN = 10) {
 
   for (const it of items) {
     const seen = new Set<string>();
-    for (const kw of keywordize(String(it.title || ''))) {
+    for (const kw of extractTerms(String(it.title || ''))) {
       if (seen.has(kw)) continue;
       seen.add(kw);
       if (!byKeyword.has(kw)) byKeyword.set(kw, []);
@@ -91,7 +117,7 @@ function deriveTrendingTopics(items: DigestItem[], topN = 10) {
         })),
       };
     })
-    .filter((t) => t.mention_count >= 2)
+    .filter((t) => t.mention_count >= 3)
     .sort((a, b) => {
       if (b.mention_count !== a.mention_count) return b.mention_count - a.mention_count;
       const bs = Number(b.top_articles[0]?.score || 0);
