@@ -198,7 +198,7 @@ function makeServer() {
     'clawdigest_latest',
     {
       title: 'Latest items',
-      description: 'Get latest/top ClawDigest items with filters and pagination.',
+      description: 'Get latest ClawDigest items (newest-first by default). Pass sort:"score" for top-ranked instead of newest.',
       inputSchema: {
         source: z.string().optional(),
         category: z.string().optional(),
@@ -211,7 +211,8 @@ function makeServer() {
       },
     },
     async (args) => {
-      const data = await fetchJson('/api/items', args as any);
+      // Default to newest-first so "latest" means latest; explicit sort still wins.
+      const data = await fetchJson('/api/items', { ...args, sort: (args as any).sort ?? 'date' } as any);
       return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }], structuredContent: data };
     },
   );
