@@ -1,7 +1,7 @@
 {
   "name": "clawdigest-mcp",
-  "version": "1.0.2",
-  "description": "Standalone MCP server for ClawDigest via HTTP REST API",
+  "version": "2.0.0",
+  "description": "Authenticated MCP sidecar for the ClawDigest account API",
   "type": "module",
   "license": "MIT",
   "keywords": [
@@ -13,7 +13,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/alexfrmn/clawdigest"
+    "url": "https://github.com/alexfrmn/clawdigest-mcp"
   },
   "bin": {
     "clawdigest-mcp": "./dist/mcp-server.js"
@@ -25,21 +25,16 @@
     "build": "tsc -p tsconfig.json",
     "prepare": "npm run build",
     "dev": "tsx src/mcp-server.ts",
-    "start": "node dist/mcp-server.js"
+    "start": "node dist/mcp-server.js",
+    "test": "vitest run"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.26.0",
-    "@mozilla/readability": "^0.6.0",
-    "cheerio": "^1.1.2",
-    "express": "^4.21.2",
-    "jsdom": "^26.1.0",
-    "zod": "^3.24.1"
+    "@modelcontextprotocol/sdk": "^1.30.0"
   },
   "devDependencies": {
-    "@types/express": "^4.17.21",
-    "@types/jsdom": "^27.0.0",
     "@types/node": "^22.13.5",
     "tsx": "^4.19.2",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "vitest": "^3.2.7"
   }
 }
