@@ -1,12 +1,6 @@
 #!/usr/bin/env node
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import {
-  CallToolRequestSchema,
-  ListResourcesRequestSchema,
-  ListToolsRequestSchema,
-  ReadResourceRequestSchema,
-} from '@modelcontextprotocol/sdk/types.js';
+import { serveStdio } from '@modelcontextprotocol/server/stdio';
+import { Server, type Tool } from '@modelcontextprotocol/server';
 import {
   ClawDigestApiError,
   createApiClient,
@@ -15,7 +9,7 @@ import {
 
 type ApiClient = ReturnType<typeof createApiClient>;
 
-const tools = [
+const tools: Tool[] = [
   {
     name: 'clawdigest_latest',
     description: 'Get the latest or highest-scored entitled ClawDigest news items.',
@@ -79,7 +73,7 @@ const tools = [
     description: 'Get the plan, usage, and enforced REST/MCP limits.',
     inputSchema: { type: 'object', additionalProperties: false, properties: {} },
   },
-] as const;
+];
 
 function textResult(payload: unknown) {
   return {
@@ -110,10 +104,10 @@ export function createServer(client: ApiClient): Server {
     { name: 'clawdigest-mcp', version: '2.0.0' },
     { capabilities: { tools: {}, resources: {} } },
   );
-  server.setRequestHandler(ListToolsRequestSchema, async () => ({
+  server.setRequestHandler('tools/list', async () => ({
     tools: tools.map((tool) => ({ ...tool })),
   }));
-  server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  server.setRequestHandler('tools/call', async (request) => {
     try {
       return await dispatch(client, request.params.name, request.params.arguments || {});
     } catch (error) {
@@ -134,14 +128,14 @@ export function createServer(client: ApiClient): Server {
       return { ...textResult(payload), isError: true };
     }
   });
-  server.setRequestHandler(ListResourcesRequestSchema, async () => ({
+  server.setRequestHandler('resources/list', async () => ({
     resources: [{
       uri: 'clawdigest://latest',
       name: 'Latest ClawDigest items',
       mimeType: 'application/json',
     }],
   }));
-  server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+  server.setRequestHandler('resources/read', async (request) => {
     if (request.params.uri !== 'clawdigest://latest') {
       throw new Error(`Unknown resource: ${request.params.uri}`);
     }
@@ -158,8 +152,8 @@ export function createServer(client: ApiClient): Server {
 }
 
 async function main() {
-  const server = createServer(createApiClient(readApiConfig()));
-  await server.connect(new StdioServerTransport());
+  const client = createApiClient(readApiConfig());
+  await serveStdio(() => createServer(client));
 }
 
 await main();

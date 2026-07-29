@@ -3,6 +3,8 @@
 Authenticated stdio MCP sidecar for the
 [ClawDigest](https://clawdigest.live) account API.
 
+Requires Node.js 20 or newer.
+
 ## Setup
 
 1. Sign in at [clawdigest.live/account](https://clawdigest.live/account).
@@ -50,6 +52,18 @@ URLs are accepted only for localhost. The key is sent only in the
 Version 2 removes the unauthenticated hosted HTTP mode and arbitrary article
 URL fetcher. This closes the previous open-proxy/SSRF surface and makes REST
 and MCP share one account entitlement and quota.
+
+## MCP protocol compatibility
+
+The sidecar uses the split MCP TypeScript SDK v2 and supports both protocol
+eras on the same stdio command:
+
+- MCP `2026-07-28` stateless negotiation for current SDK v2 clients.
+- Legacy initialization for Claude Code and other clients that have not yet
+  enabled the new protocol.
+
+No client flag is required. New clients probe and select the stateless
+protocol; existing configurations continue to work unchanged.
 
 ## Development and release checks
 
