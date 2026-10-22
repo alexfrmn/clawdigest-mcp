@@ -9,12 +9,13 @@ Requires Node.js 20 or newer.
 
 1. Sign in at [clawdigest.live/account](https://clawdigest.live/account).
 2. Create a named API key and copy it when shown.
-3. Configure the sidecar:
+3. Configure the sidecar. The package is not on the npm registry yet; npx
+   installs and builds it straight from this repository:
 
 ```bash
 claude mcp add clawdigest \
   -e CLAWDIGEST_API_KEY=cd_live_... \
-  -- npx -y clawdigest-mcp
+  -- npx -y github:alexfrmn/clawdigest-mcp
 ```
 
 JSON:
@@ -24,7 +25,7 @@ JSON:
   "mcpServers": {
     "clawdigest": {
       "command": "npx",
-      "args": ["-y", "clawdigest-mcp"],
+      "args": ["-y", "github:alexfrmn/clawdigest-mcp"],
       "env": {
         "CLAWDIGEST_API_KEY": "cd_live_..."
       }
@@ -42,9 +43,9 @@ URLs are accepted only for localhost. The key is sent only in the
 | Tool | Description |
 |---|---|
 | `clawdigest_latest` | Latest or top-ranked entitled items |
-| `clawdigest_search` | Search entitled items |
+| `clawdigest_search` | Search titles: every word must match, `"quoted phrase"`, `category`, `region`, `sort=date|score|relevance` |
 | `clawdigest_sources` | Configured source catalog |
-| `clawdigest_trending` | Recent high-signal items |
+| `clawdigest_trending` | Top cross-source stories for `hours` (168 = week), optional `category` and `region` |
 | `clawdigest_regions` | Regions within the archive entitlement |
 | `clawdigest_status` | Tracked AI-service status |
 | `clawdigest_usage` | Current plan, quota, and usage |
