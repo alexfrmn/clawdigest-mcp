@@ -1,6 +1,6 @@
 {
   "name": "clawdigest-mcp",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Authenticated MCP sidecar for the ClawDigest account API",
   "type": "module",
   "license": "MIT",
@@ -35,7 +35,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@modelcontextprotocol/server": "^2.0.0"
+    "@modelcontextprotocol/server": "^2.3.1"
   },
   "devDependencies": {
     "@modelcontextprotocol/client": "^2.0.0",

@@ -106,19 +106,21 @@ export function createApiClient(
     },
     search(input: {
       query: string;
+      category?: string;
       region?: string;
-      sort?: 'date' | 'score';
+      sort?: 'date' | 'score' | 'relevance';
       limit?: number;
     }) {
       return request('/api/v2/search', {
         q: input.query,
+        category: input.category,
         region: input.region,
         sort: input.sort,
         limit: input.limit,
       });
     },
     sources: () => request('/api/v2/sources'),
-    trending: (input: { hours?: number; limit?: number } = {}) => (
+    trending: (input: { hours?: number; limit?: number; category?: string; region?: string } = {}) => (
       request('/api/v2/trending', input)
     ),
     regions: () => request('/api/v2/regions'),

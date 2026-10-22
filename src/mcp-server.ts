@@ -28,15 +28,16 @@ const tools: Tool[] = [
   },
   {
     name: 'clawdigest_search',
-    description: 'Search entitled ClawDigest items by title.',
+    description: 'Search entitled ClawDigest items by title. Every word must match (prefix for 3+ letters); "quoted phrase" supported; falls back to any word (meta.match=any).',
     inputSchema: {
       type: 'object',
       additionalProperties: false,
       required: ['query'],
       properties: {
         query: { type: 'string' },
+        category: { type: 'string', description: 'ai, security, devops, web, crypto, general or status; comma-separated list allowed.' },
         region: { type: 'string' },
-        sort: { type: 'string', enum: ['date', 'score'] },
+        sort: { type: 'string', enum: ['date', 'score', 'relevance'] },
         limit: { type: 'number' },
       },
     },
@@ -48,13 +49,15 @@ const tools: Tool[] = [
   },
   {
     name: 'clawdigest_trending',
-    description: 'Get high-signal items from a recent time window.',
+    description: 'Top stories published in a recent time window: cross-source clusters ranked by coverage, quality and freshness (story_sources, related). Status-page notices are excluded unless category=status.',
     inputSchema: {
       type: 'object',
       additionalProperties: false,
       properties: {
-        hours: { type: 'number' },
+        hours: { type: 'number', description: 'Default: 24; capped by archive entitlement. 168 = last week.' },
         limit: { type: 'number' },
+        category: { type: 'string', description: 'ai, security, devops, web, crypto, general or status; comma-separated list allowed.' },
+        region: { type: 'string' },
       },
     },
   },
@@ -86,6 +89,7 @@ async function dispatch(client: ApiClient, name: string, args: any) {
   if (name === 'clawdigest_search') {
     return textResult(await client.search({
       query: String(args.query || ''),
+      category: args.category,
       region: args.region,
       sort: args.sort,
       limit: args.limit,
@@ -101,7 +105,7 @@ async function dispatch(client: ApiClient, name: string, args: any) {
 
 export function createServer(client: ApiClient): Server {
   const server = new Server(
-    { name: 'clawdigest-mcp', version: '2.0.0' },
+    { name: 'clawdigest-mcp', version: '2.1.0' },
     { capabilities: { tools: {}, resources: {} } },
   );
   server.setRequestHandler('tools/list', async () => ({
